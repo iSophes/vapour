@@ -1,0 +1,44 @@
+import { Button, VerticalBox } from "std-widgets.slint";
+import {startup} from "startup.slint";
+import { topup } from "topup.slint";
+import { Palette } from "palette.slint";
+
+export component AppWindow inherits Window {    
+    background: Palette.highContrast ? #000000 : #1e1e2e;
+    animate background {
+         duration: 300ms;
+    }
+
+    full-screen: true;
+
+    in-out property <string> currentMenu: "";
+    in-out property <string> time;
+
+    property <color> animated-textColorMain: Palette.textColorMain;
+    property <color> animated-textColorAccent: Palette.textColorAccent;
+
+    animate animated-textColorMain {
+        duration: 300ms;
+    }
+
+    animate animated-textColorAccent {
+        duration: 300ms;
+    }
+
+    function set_theme(contrast: bool) {
+        animated-textColorMain = contrast ? #ffffff : #cdd6f4;
+        animated-textColorAccent = contrast ? #ffff00 : #a6adc8;
+
+        Palette.textColorMain = animated-textColorMain;
+        Palette.textColorAccent = animated-textColorAccent;
+    }
+
+    startup {
+        opacity: currentMenu == "startup" ? 1 : 0;
+        time: time;
+    }
+
+    topup {
+        opacity: currentMenu == "topup" ? 1 : 0;
+    }
+}

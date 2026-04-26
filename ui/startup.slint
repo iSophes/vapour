@@ -1,0 +1,126 @@
+import { Button, VerticalBox } from "std-widgets.slint";
+import { customButton } from "customButton.slint";
+import { Palette } from "palette.slint";
+
+export component startup inherits Rectangle{
+    in property <string> time: "00:00";
+
+    VerticalLayout { // Central text layout
+        alignment: center;
+        spacing: 16px;
+
+        Text {
+            text: "Welcome!";
+            font-size: 64px;
+            font-family: Palette.fontFamily;
+            font-weight: 600;
+            color: Palette.textColorMain; 
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+        Text {
+            text: "Top up your Runshaw Pay account here.";
+            font-size: 32px;
+            font-family: Palette.fontFamily;
+            font-weight: 400;
+            color: Palette.textColorMain;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+        Text {
+            text: "This terminal does not provide receipts.";
+            font-size: 28px;
+            font-family: Palette.fontFamily;
+            font-weight: 200;
+            color: Palette.textColorAccent;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+        Text {
+            text: time;
+            font-size: 36px;
+            font-family: Palette.fontFamily;
+            font-weight: 300;
+            color: Palette.textColorAccent;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+
+    Rectangle { // Used for things outside vertical layout
+        width: 100%;
+        height: 100%;
+
+        // Top Right
+
+        customButton {
+            text: Palette.highContrast ? "Disable High Contrast" : "Enable High Contrast";
+            custom_width: 400;
+            custom_height: 150;
+            x: parent.width - 420px;
+            y: 16px;
+            custom_font_size: 30;
+            custom_font_weight: 700;
+            callback => {
+                Palette.highContrast = !Palette.highContrast
+            };
+        }
+
+        // Bottom
+
+        Text {
+            text: "Vapour Payment Terminal";
+            font-size: 15px;
+            font-family: Palette.fontFamily;
+            font-weight: 300;
+            color: Palette.textColorAccent;
+            x: 16px;
+            y: parent.height - self.height - 16px;
+        }
+
+        Text {
+            text: "Scan your student ID below to get started";
+            font-size: 25px;
+            font-family: Palette.fontFamily;
+            font-weight: 300;
+            color: Palette.textColorAccent;
+            x: parent.width / 2 - (self.width / 2);
+            y: parent.height - self.height - 100px;
+        }
+        
+        Image {
+            property <bool> bob: false;
+
+            Timer {
+                interval: 800ms;
+                running: true;
+                triggered => {bob = !bob}
+            }
+
+            source: @image-url("../assets/arrow.svg");
+            x: parent.width / 2 - (self.width / 2);
+            y: parent.height - self.height - 50px + (bob ? 12px : 0px);
+            colorize: Palette.textColorAccent;
+            width: 40px;
+            height: 40px;
+
+
+            animate y {
+                duration: 800ms;
+                easing: ease-in-out-quad;    
+            }
+        }
+
+        Text {
+            text: "Made with ❤️ by iSophes";
+            font-size: 15px;
+            font-family: Palette.fontFamily;
+            font-weight: 300;
+            color: Palette.textColorAccent;
+            x: parent.width - self.width - 16px;
+            y: parent.height - self.height - 16px;
+        }
+
+        
+    }
+}

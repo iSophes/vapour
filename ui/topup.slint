@@ -1,0 +1,195 @@
+import { Button, VerticalBox, GridBox, HorizontalBox } from "std-widgets.slint";
+import { customButton } from "customButton.slint";
+import { Palette } from "palette.slint";
+
+export component topup inherits Rectangle {
+    in property <string> student_name: "Sophie";
+    in property <float> balance: 3.67;
+
+    callback press_buy(float);
+    callback custom_amount();
+
+    VerticalLayout { // Central text layout
+        alignment: center;
+        spacing: 16px;
+        padding-bottom: 5px;
+        width: 50%;
+
+        Text {
+            text: "Hi, " + student_name + "!";
+            font-size: 64px;
+            font-family: Palette.fontFamily;
+            font-weight: 600;
+            color: Palette.textColorMain;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+
+        Text {
+            text: "Current Balance: £" + balance;
+            font-size: 32px;
+            font-family: Palette.fontFamily;
+            font-weight: 400;
+            color: Palette.textColorAccent;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+
+        Rectangle {
+            width: 100%;
+            height: 25%;
+
+            VerticalBox {
+                padding-top: 30px;
+                alignment: center;
+                spacing: 30px;
+                property <int> custom_width: 300;
+                property <int> custom_height: 100;
+
+                HorizontalBox {
+                    alignment: center;
+                    spacing: 50px;
+                    customButton {
+                        custom_width: custom_width;
+                        custom_height: custom_height;
+                        custom_font_size: 32;
+                        custom_font_weight: 400;
+                        text: "£2.50";
+                        callback => {
+                            press_buy(2.50)
+                        }
+                    }
+
+                    customButton {
+                        custom_width: custom_width;
+                        custom_height: custom_height;
+                        custom_font_size: 32;
+                        custom_font_weight: 400;
+                        text: "£3.50";
+                        callback => {
+                            press_buy(3.50)
+                        }
+                    }
+                }
+
+                HorizontalBox {
+                    alignment: center;
+                    spacing: 50px;
+                    customButton {
+                        custom_width: custom_width;
+                        custom_height: custom_height;
+                        custom_font_size: 32;
+                        custom_font_weight: 400;
+                        text: "£5.00";
+                        callback => {
+                            press_buy(5.0)
+                        }
+                    }
+
+                    customButton {
+                        custom_width: custom_width;
+                        custom_height: custom_height;
+                        custom_font_size: 32;
+                        custom_font_weight: 400;
+                        text: "£10.00";
+                        callback => {
+                            press_buy(10.0)
+                        }
+                    }
+                }
+
+                HorizontalBox {
+                    alignment: center;
+                    spacing: 50px;
+                    customButton {
+                        custom_width: custom_width;
+                        custom_height: custom_height;
+                        custom_font_size: 32;
+                        custom_font_weight: 400;
+                        text: "£20.00";
+                        callback => {
+                            press_buy(20.0)
+                        }
+                    }
+
+                    customButton {
+                        custom_width: custom_width;
+                        custom_height: custom_height;
+                        custom_font_size: 32;
+                        custom_font_weight: 400;
+                        text: "£50.00";
+                        callback => {
+                            press_buy(50.0)
+                        }
+                    }
+                }
+            }
+        }
+
+        customButton {
+            x: (parent.width / 2) - (self.width / 2);
+            custom_width: 650;
+            custom_height: 100;
+            custom_font_size: 32;
+            custom_font_weight: 400;
+            text: "Custom Amount";
+            callback => {
+                custom_amount()
+            }
+        }
+
+        customButton {
+            x: (parent.width / 2) - (self.width / 2);
+            custom_width: 400;
+            custom_height: 100;
+            custom_font_size: 32;
+            custom_font_weight: 400;
+            text: "Log Out";
+            callback => {
+                custom_amount()
+            }
+        }
+    }
+
+    Rectangle { // Used for things outside vertical layout
+        width: 100%;
+        height: 100%;
+
+        // Top Right
+
+        customButton {
+            text: Palette.highContrast ? "Disable High Contrast" : "Enable High Contrast";
+            custom_width: 400;
+            custom_height: 150;
+            x: parent.width - 420px;
+            y: 16px;
+            custom_font_size: 30;
+            custom_font_weight: 700;
+            callback => {
+                Palette.highContrast = !Palette.highContrast
+            };
+        }
+
+        // Bottom
+
+        Text {
+            text: "Vapour Payment Terminal";
+            font-size: 15px;
+            font-family: Palette.fontFamily;
+            font-weight: 300;
+            color: Palette.textColorAccent;
+            x: 16px;
+            y: parent.height - self.height - 16px;
+        }
+
+        Text {
+            text: "Made with ❤️ by iSophes";
+            font-size: 15px;
+            font-family: Palette.fontFamily;
+            font-weight: 300;
+            color: Palette.textColorAccent;
+            x: parent.width - self.width - 16px;
+            y: parent.height - self.height - 16px;
+        }
+    }
+}

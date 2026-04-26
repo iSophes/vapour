@@ -1,0 +1,6 @@
+export global Palette  {
+    in-out property <bool> highContrast: false;
+    in-out property <color> textColorMain: highContrast ? #ffffff : #cdd6f4;
+    in-out property <color> textColorAccent: highContrast ? #ffff00 : #a6adc8;
+    out property <string> fontFamily: "../fonts/inter.ttf";    
+}
