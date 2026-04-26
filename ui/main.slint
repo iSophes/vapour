@@ -14,6 +14,12 @@ export component AppWindow inherits Window {
     in-out property <string> currentMenu: "";
     in-out property <string> time;
 
+    in-out property <bool> highContrast: Palette.highContrast;
+
+    changed highContrast => {
+        Palette.highContrast = highContrast;
+    }
+
     property <color> animated-textColorMain: Palette.textColorMain;
     property <color> animated-textColorAccent: Palette.textColorAccent;
 
@@ -36,6 +42,7 @@ export component AppWindow inherits Window {
     startup {
         opacity: currentMenu == "startup" ? 1 : 0;
         time: time;
+        
     }
 
     topup {
