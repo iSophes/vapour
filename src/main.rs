@@ -2,11 +2,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use dotenv::dotenv;
-use reqwest;
+use std::cell::Cell;
 use std::env;
 use std::error::Error;
+use std::rc::Rc;
 
 mod qrscan;
+mod auth;
 
 slint::include_modules!();
 
@@ -19,7 +21,6 @@ async fn create_authentication(id: String, password: String) {
 
     let reqwest_client = reqwest::Client::new();
 
-     // Step 1: Create session and capture cookie
     let session_response = reqwest_client
         .post("https://appwrite.danieldb.uk/v1/account/sessions/email")
         .header("Content-Type", "application/json")
@@ -60,12 +61,41 @@ async fn create_authentication(id: String, password: String) {
 
     Ok(());
 }*/
-async fn start_screen(ui: AppWindow) {
+
+async fn start_screen(ui: &AppWindow, failed_scan_index: Rc<Cell<u32>>) {
     ui.set_highContrast(false);
     ui.set_currentMenu("startup".into());
 
+    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+
     let scanned = qrscan::scan_qr().unwrap();
-    println!("{}", scanned);
+    let does_account_exist = auth::does_account_exist(scanned).await.unwrap();
+
+    if !does_account_exist {
+        ui.set_currentMenu("noaccount".into());
+
+        let weak_ui = ui.as_weak();
+
+        failed_scan_index.set(failed_scan_index.get() + 1);
+        let current_get = failed_scan_index.get();
+        let cloned_value = failed_scan_index.clone();
+
+        slint::spawn_local(async move {
+            tokio::time::sleep(std::time::Duration::from_secs(60)).await;
+
+            if current_get != cloned_value.get() {
+                return; // Multiple users have failed. 
+            }
+
+            if let Some(ui) = weak_ui.upgrade() {
+                if ui.get_currentMenu() != "noaccount" {
+                    return;
+                }
+
+                ui.set_currentMenu("startup".into());
+            }
+        }).unwrap();
+    }
 }
 
 #[tokio::main]
@@ -74,6 +104,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let ui = AppWindow::new()?;
     let weakui = ui.as_weak();
+    
+    let failed_scan_index = Rc::new(Cell::new(0u32));
 
     std::thread::spawn(move || loop {
         let now = chrono::Local::now()
@@ -90,9 +122,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         std::thread::sleep(std::time::Duration::from_secs(1));
     });
-    
-    start_screen(ui.clone_strong()).await;
 
+    let second_ui = ui.as_weak();
+
+    slint::spawn_local(async move {
+        start_screen(&second_ui.upgrade().unwrap(), failed_scan_index).await;
+    }).unwrap();
+    
     ui.run()?;
 
     Ok(())

@@ -19,6 +19,10 @@ Our college (Runshaw) uses a custom payment system internally instead of relying
 - Provide a cleaner and more pleasant user interface with animations. Currently, there is a lot of unused screen real estate.
 - Provide a way for other colleges to implement their own APIs and use this internally
 
+>[!NOTE]
+> Other college support will be limited. APIs are incredibly focused on Runshaw and student made APIs and databases. 
+> If you want to implement support for your college, a lot of source code modifications will be needed. This is not a plug and play solution.
+
 ## How to run
 
 ```bash

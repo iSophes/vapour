@@ -1,8 +1,13 @@
-use nokhwa::{Camera, utils::{CameraIndex, RequestedFormat, RequestedFormatType}};
-use rqrr::PreparedImage;
+// Two commented lines will be used, just testing things without QR Code scanning for the moment.
+
+//use nokhwa::{Camera, utils::{CameraIndex, RequestedFormat, RequestedFormatType}};
+//use rqrr::PreparedImage;
+
+use dotenv::dotenv;
+use std::env;
 
 pub fn scan_qr() -> Option<String> {
-    let mut camera = Camera::new(
+    /*let mut camera = Camera::new(
         CameraIndex::Index(0),
         RequestedFormat::new::<nokhwa::pixel_format::RgbFormat>(RequestedFormatType::AbsoluteHighestFrameRate)
     ).expect("You need to connect a camera to use this.");
@@ -21,5 +26,12 @@ pub fn scan_qr() -> Option<String> {
                 return Some(content);
             }
         }
-    }
+    }*/
+
+    // NOTE: This is used for testing only!!!! 
+
+    dotenv().ok();
+    let student_id = env::var("STUDENT_ID").expect("Student ID not there!").to_string();
+
+    return Some(student_id)
 }

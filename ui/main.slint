@@ -2,6 +2,7 @@ import { Button, VerticalBox } from "std-widgets.slint";
 import {startup} from "startup.slint";
 import { topup } from "topup.slint";
 import { Palette } from "palette.slint";
+import { NoAccount } from "noaccount.slint";
 
 export component AppWindow inherits Window {    
     background: Palette.highContrast ? #000000 : #1e1e2e;
@@ -18,6 +19,12 @@ export component AppWindow inherits Window {
 
     changed highContrast => {
         Palette.highContrast = highContrast;
+    }
+
+    changed currentMenu => {
+        if (currentMenu == "startup") {
+            Palette.highContrast = false;
+        }
     }
 
     property <color> animated-textColorMain: Palette.textColorMain;
@@ -47,5 +54,10 @@ export component AppWindow inherits Window {
 
     topup {
         opacity: currentMenu == "topup" ? 1 : 0;
+    }
+
+    NoAccount {
+        opacity: currentMenu == "noaccount" ? 1 : 0;
+        go_back => {currentMenu = "startup";};
     }
 }

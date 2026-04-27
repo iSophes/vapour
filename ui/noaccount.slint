@@ -1,0 +1,33 @@
+import { Palette } from "palette.slint";
+import { customButton } from "customButton.slint";
+
+export component NoAccount inherits Rectangle {
+    in-out property <string> currentMenu;
+    callback go_back();
+    VerticalLayout {
+        alignment: center;
+        spacing: 100px;
+
+        Text {
+            x: (parent.width / 2) - (self.width / 2);
+            horizontal-alignment: center;
+            width: 50%;
+            height: 10%;
+            text: "Hey! Unfortunately you need an account to MY RUNSHAW to use this.\nDownload it from the App Store or Google Play Store on your phone.";
+            font-weight: 600;
+            font-family: Palette.fontFamily;
+            font-size: 30px;
+            color: Palette.textColorMain;
+        }
+
+        customButton {
+            x: (parent.width / 2) - (self.width / 2);
+            custom_width: 400;
+            custom_height: 100;
+            custom_font_size: 20;
+            custom_font_weight: 400;
+            text: "Go Back";
+            callback => {go_back()};
+        }
+    }
+}
