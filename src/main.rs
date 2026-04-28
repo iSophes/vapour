@@ -7,6 +7,8 @@ use std::env;
 use std::error::Error;
 use std::rc::Rc;
 
+use crate::auth::get_balance;
+
 mod qrscan;
 mod auth;
 
@@ -14,11 +16,11 @@ slint::include_modules!();
 
 async fn start_screen(ui: &AppWindow, failed_scan_index: Rc<Cell<u32>>) {
     ui.set_highContrast(false);
-    ui.set_currentMenu("topup".into());
+    ui.set_currentMenu("startup".into());
 
-    tokio::time::sleep(std::time::Duration::from_secs(300)).await;
+    tokio::time::sleep(std::time::Duration::from_secs(3)).await; // Temporary sleep for testing purposes
 
-    let scanned = qrscan::scan_qr().unwrap();
+    let scanned = qrscan::scan_qr().unwrap(); 
     let does_account_exist = auth::does_account_exist(scanned.clone()).await.unwrap();
 
     if !does_account_exist {
@@ -59,11 +61,13 @@ async fn start_screen(ui: &AppWindow, failed_scan_index: Rc<Cell<u32>>) {
     }
 }
 
-async fn check_password(id: String, password: String) {
-    match auth::check_password(id, password).await {
-        Ok(Some(jwt)) => {println!("success")},
+async fn check_password(student_id: String, password: String) {
+    match auth::check_password_and_authenticate(student_id, password).await {
+        Ok(Some(jwt_token)) => {   
+            let _balance = get_balance(jwt_token);
+        },
         Ok(None) => {println!("failed")},
-        Err(e)        => {},
+        Err(_error)        => {},
     }
 }
 
