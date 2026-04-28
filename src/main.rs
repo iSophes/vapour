@@ -12,64 +12,14 @@ mod auth;
 
 slint::include_modules!();
 
-/*
-async fn create_authentication(id: String, password: String) {
-    let student_id = env::var("STUDENT_ID").expect("Student ID not there!").to_string();
-    let account_email = env::var("ACCOUNT_EMAIL").expect("Account Email not there!").to_string();
-    let account_password = env::var("ACCOUNT_PASSWORD").expect("Account Password not there!").to_string();
-    let project_id = env::var("PROJECT_ID").expect("Project ID not there!").to_string();
-
-    let reqwest_client = reqwest::Client::new();
-
-    let session_response = reqwest_client
-        .post("https://appwrite.danieldb.uk/v1/account/sessions/email")
-        .header("Content-Type", "application/json")
-        .header("X-Appwrite-Project", project_id.clone())
-        .json(&serde_json::json!({
-            "email": account_email,
-            "password": account_password
-        }))
-        .send()
-        .await?;
-
-    let cookie = session_response
-        .headers()
-        .get("set-cookie")
-        .unwrap()
-        .to_str()?
-        .to_string();
-
-    let jwt_result = reqwest_client
-        .post("https://appwrite.danieldb.uk/v1/account/jwt")
-        .header("Content-Type", "application/json")
-        .header("X-Appwrite-Project", project_id.clone())
-        .header("Cookie", cookie)
-        .send()
-        .await?
-        .json::<serde_json::Value>()
-        .await?;
-
-    let jwt_string = jwt_result["jwt"].as_str().unwrap().to_string();
-
-    let balance = reqwest_client
-    .get("https://runshaw-api.danieldb.uk/api/name/get/".to_owned() + &student_id)
-    .header("Authorization", format!("Bearer {}", jwt_string))
-    .send()
-    .await?
-    .json::<serde_json::Value>()
-    .await?;
-
-    Ok(());
-}*/
-
 async fn start_screen(ui: &AppWindow, failed_scan_index: Rc<Cell<u32>>) {
     ui.set_highContrast(false);
-    ui.set_currentMenu("startup".into());
+    ui.set_currentMenu("topup".into());
 
-    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+    tokio::time::sleep(std::time::Duration::from_secs(300)).await;
 
     let scanned = qrscan::scan_qr().unwrap();
-    let does_account_exist = auth::does_account_exist(scanned).await.unwrap();
+    let does_account_exist = auth::does_account_exist(scanned.clone()).await.unwrap();
 
     if !does_account_exist {
         ui.set_currentMenu("noaccount".into());
@@ -88,6 +38,7 @@ async fn start_screen(ui: &AppWindow, failed_scan_index: Rc<Cell<u32>>) {
             }
 
             if let Some(ui) = weak_ui.upgrade() {
+                failed_scan_index.set(0);
                 if ui.get_currentMenu() != "noaccount" {
                     return;
                 }
@@ -95,6 +46,24 @@ async fn start_screen(ui: &AppWindow, failed_scan_index: Rc<Cell<u32>>) {
                 ui.set_currentMenu("startup".into());
             }
         }).unwrap();
+    } else {
+        ui.set_currentMenu("passwordinput".into());
+        ui.on_check_password(move |password| {
+            let id = scanned.clone();
+            let cloned_password = password.clone();
+
+            let _ = slint::spawn_local(async move {
+                check_password(id, cloned_password.to_string()).await;
+            });
+        });
+    }
+}
+
+async fn check_password(id: String, password: String) {
+    match auth::check_password(id, password).await {
+        Ok(Some(jwt)) => {println!("success")},
+        Ok(None) => {println!("failed")},
+        Err(e)        => {},
     }
 }
 

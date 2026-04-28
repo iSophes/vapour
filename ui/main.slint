@@ -1,8 +1,9 @@
 import { Button, VerticalBox } from "std-widgets.slint";
-import {startup} from "startup.slint";
-import { topup } from "topup.slint";
-import { Palette } from "palette.slint";
-import { NoAccount } from "noaccount.slint";
+import {startup} from "pages/startup.slint";
+import { topup } from "pages/topup.slint";
+import { Palette } from "components/palette.slint";
+import { NoAccount } from "pages/noaccount.slint";
+import { PasswordInput } from "pages/password.slint";
 
 export component AppWindow inherits Window {    
     background: Palette.highContrast ? #000000 : #1e1e2e;
@@ -16,6 +17,8 @@ export component AppWindow inherits Window {
     in-out property <string> time;
 
     in-out property <bool> highContrast: Palette.highContrast;
+
+    callback check_password(string);
 
     changed highContrast => {
         Palette.highContrast = highContrast;
@@ -59,5 +62,11 @@ export component AppWindow inherits Window {
     NoAccount {
         opacity: currentMenu == "noaccount" ? 1 : 0;
         go_back => {currentMenu = "startup";};
+    }
+
+    PasswordInput {
+        opacity: currentMenu == "passwordinput" ? 1 : 0;
+        go_back => {currentMenu = "startup";}
+        submit_password(string) => {check_password(string)}
     }
 }

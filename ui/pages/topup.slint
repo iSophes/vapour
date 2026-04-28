@@ -1,7 +1,6 @@
-import { Button, VerticalBox, GridBox, HorizontalBox } from "std-widgets.slint";
-import { customButton } from "customButton.slint";
-import { Palette } from "palette.slint";
-
+import { Button } from "std-widgets.slint";
+import { Palette } from "../components/palette.slint";
+import { customButton } from "../components/customButton.slint";
 export component topup inherits Rectangle {
     in property <string> student_name: "Sophie";
     in property <float> balance: 3.67;
@@ -39,14 +38,14 @@ export component topup inherits Rectangle {
             width: 100%;
             height: 25%;
 
-            VerticalBox {
+            VerticalLayout {
                 padding-top: 30px;
                 alignment: center;
                 spacing: 30px;
                 property <int> custom_width: 300;
                 property <int> custom_height: 100;
 
-                HorizontalBox {
+                HorizontalLayout {
                     alignment: center;
                     spacing: 50px;
                     customButton {
@@ -72,7 +71,7 @@ export component topup inherits Rectangle {
                     }
                 }
 
-                HorizontalBox {
+                HorizontalLayout {
                     alignment: center;
                     spacing: 50px;
                     customButton {
@@ -98,7 +97,7 @@ export component topup inherits Rectangle {
                     }
                 }
 
-                HorizontalBox {
+                HorizontalLayout {
                     alignment: center;
                     spacing: 50px;
                     customButton {
