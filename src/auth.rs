@@ -1,5 +1,4 @@
 use std::env;
-
 use reqwest;
 
 pub async fn does_account_exist(student_id: String) -> Result<bool, reqwest::Error> {
@@ -55,10 +54,8 @@ pub async fn check_password_and_authenticate(student_id: String, password: Strin
 pub async fn get_balance(jwt: String) -> Result<Option<String>, Box<dyn std::error::Error>> {
     let reqwest_client = reqwest::Client::new();
 
-    println!("getting balance");
-
     let balance_callback = reqwest_client
-        .post("https://appwrite.danieldb.uk/v1/api/payments/balance")
+        .get("https://runshaw-api.danieldb.uk/api/payments/balance")
         .header("Content-Type", "application/json")
         .header("Authorization", "Bearer ".to_owned() + &jwt)
         .send()
@@ -66,9 +63,32 @@ pub async fn get_balance(jwt: String) -> Result<Option<String>, Box<dyn std::err
         .json::<serde_json::Value>()
         .await?;
 
-    println!("{}", balance_callback);
+    let balance = balance_callback["balance"].to_string();
 
-    let balance = balance_callback.as_str().unwrap().to_string();
-
+    if balance_callback["detail"] != serde_json::Value::Null {
+        return Ok(Some(balance_callback["detail"].to_string()))
+    } 
+    
     return Ok(Some(balance));
+}
+
+pub async fn get_name(student_id: String, jwt: String) -> Result<Option<String>, Box<dyn std::error::Error>> {
+    let reqwest_client = reqwest::Client::new();
+
+    let name_callback = reqwest_client
+        .get("https://runshaw-api.danieldb.uk/api/name/get/".to_owned() + &student_id)
+        .header("Content-Type", "application/json")
+        .header("Authorization", "Bearer ".to_owned() + &jwt)
+        .send()
+        .await?
+        .json::<serde_json::Value>()
+        .await?;
+
+    let name = name_callback["name"].to_string();
+
+    if name_callback["detail"] != serde_json::Value::Null {
+        return Ok(Some(name_callback["detail"].to_string()))
+    } 
+    
+    return Ok(Some(name));
 }

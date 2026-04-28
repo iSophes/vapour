@@ -7,8 +7,6 @@ use std::env;
 use std::error::Error;
 use std::rc::Rc;
 
-use crate::auth::get_balance;
-
 mod qrscan;
 mod auth;
 
@@ -49,25 +47,35 @@ async fn start_screen(ui: &AppWindow, failed_scan_index: Rc<Cell<u32>>) {
             }
         }).unwrap();
     } else {
+        let weak_ui = ui.as_weak();
+
         ui.set_currentMenu("passwordinput".into());
         ui.on_check_password(move |password| {
             let id = scanned.clone();
             let cloned_password = password.clone();
-
+            let weak_ui_clone = weak_ui.clone();
             let _ = slint::spawn_local(async move {
-                check_password(id, cloned_password.to_string()).await;
+                let strong_ui = weak_ui_clone.upgrade().unwrap();
+                check_password(&strong_ui, id, cloned_password.to_string()).await;
             });
         });
     }
 }
 
-async fn check_password(student_id: String, password: String) {
+async fn check_password(ui: &AppWindow, student_id: String, password: String) {
     match auth::check_password_and_authenticate(student_id, password).await {
         Ok(Some(jwt_token)) => {   
-            let _balance = get_balance(jwt_token);
+            let balance = auth::get_balance(jwt_token).await.unwrap().unwrap();
+            if balance.chars().next().unwrap() != "£".to_owned().chars().next().unwrap() {
+                println!("ERROR!!!!! {}", balance);
+                // we will add proper error handling later
+                return;
+            }
+
+            
         },
         Ok(None) => {println!("failed")},
-        Err(_error)        => {},
+        Err(_error)        => {println!("fail")},
     }
 }
 

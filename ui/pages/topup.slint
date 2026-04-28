@@ -3,7 +3,7 @@ import { Palette } from "../components/palette.slint";
 import { customButton } from "../components/customButton.slint";
 export component topup inherits Rectangle {
     in property <string> student_name: "Sophie";
-    in property <float> balance: 3.67;
+    in property <string> balance: "£3.67";
 
     callback press_buy(float);
     callback custom_amount();
@@ -25,7 +25,7 @@ export component topup inherits Rectangle {
         }
 
         Text {
-            text: "Current Balance: £" + balance;
+            text: "Current Balance: " + balance;
             font-size: 32px;
             font-family: Palette.fontFamily;
             font-weight: 400;
