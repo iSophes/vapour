@@ -12,6 +12,13 @@ mod auth;
 
 slint::include_modules!();
 
+fn remove_first_and_last(value: &str) -> &str {
+    let mut chars = value.chars();
+    chars.next();
+    chars.next_back();
+    return chars.as_str();
+}
+
 async fn start_screen(ui: &AppWindow, failed_scan_index: Rc<Cell<u32>>) {
     ui.set_highContrast(false);
     ui.set_currentMenu("startup".into());
@@ -56,16 +63,21 @@ async fn start_screen(ui: &AppWindow, failed_scan_index: Rc<Cell<u32>>) {
             let weak_ui_clone = weak_ui.clone();
             let _ = slint::spawn_local(async move {
                 let strong_ui = weak_ui_clone.upgrade().unwrap();
-                check_password(&strong_ui, id, cloned_password.to_string()).await;
+                check_password(&strong_ui, id.clone(), cloned_password.to_string()).await;
             });
         });
     }
 }
 
 async fn check_password(ui: &AppWindow, student_id: String, password: String) {
+    let id_after_auth = student_id.clone();
     match auth::check_password_and_authenticate(student_id, password).await {
         Ok(Some(jwt_token)) => {   
-            let balance = auth::get_balance(jwt_token).await.unwrap().unwrap();
+            let id_for_name = id_after_auth;
+            let jwt_for_balance = jwt_token.clone();
+            let jwt_for_name = jwt_token.clone();
+
+            let mut balance = auth::get_balance(jwt_for_balance).await.unwrap().unwrap();
             let mut verified: bool = false;
             println!("{}", balance);
 
@@ -84,6 +96,20 @@ async fn check_password(ui: &AppWindow, student_id: String, password: String) {
                 // we will add proper error handling later
                 return;
             }
+
+            let mut name = auth::get_name(id_for_name, jwt_for_name).await.unwrap().unwrap();
+            
+            if name.chars().next().unwrap() == "\"".to_owned().chars().next().unwrap() {
+                name = remove_first_and_last(&name).to_string();
+            }
+
+            if balance.chars().next().unwrap() == "\"".to_owned().chars().next().unwrap() {
+                balance = remove_first_and_last(&balance).to_string();
+            }
+
+            ui.set_name(name.into());
+            ui.set_balance(balance.into());
+            ui.set_currentMenu("topup".into());
 
             
         },
