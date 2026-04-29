@@ -12,7 +12,7 @@ pub async fn does_account_exist(student_id: String) -> Result<bool, reqwest::Err
 
 pub async fn check_password_and_authenticate(student_id: String, password: String) -> Result<Option<String>, Box<dyn std::error::Error>> {
     let reqwest_client = reqwest::Client::new();
-    let project_id = env::var("PROJECT_ID").expect("Project ID not there!").to_string();
+    let project_id = env::var("RUNSHAW_ID").expect("My Runshaw Project ID not there!").to_string();
 
     let session_response = reqwest_client
         .post("https://appwrite.danieldb.uk/v1/account/sessions/email")
@@ -51,28 +51,11 @@ pub async fn check_password_and_authenticate(student_id: String, password: Strin
     return Ok(Some(jwt_string))
 }
 
-pub async fn get_balance(jwt: String) -> Result<Option<String>, Box<dyn std::error::Error>> {
-    let reqwest_client = reqwest::Client::new();
-
-    let balance_callback = reqwest_client
-        .get("https://runshaw-api.danieldb.uk/api/payments/balance")
-        .header("Content-Type", "application/json")
-        .header("Authorization", "Bearer ".to_owned() + &jwt)
-        .send()
-        .await?
-        .json::<serde_json::Value>()
-        .await?;
-
-    let balance = balance_callback["balance"].to_string();
-
-    if balance_callback["detail"] != serde_json::Value::Null {
-        return Ok(Some(balance_callback["detail"].to_string()))
-    } 
+pub async fn get_name(student_id: String) -> Result<Option<String>, Box<dyn std::error::Error>> {
+    let my_id = env::var("MY_RUNSHAW_ID").expect("").to_string();
+    let my_password = env::var("MY_RUNSHAW_ID").expect("").to_string()
+    let jwt = check_password_and_authenticate(my_id, my_password).await?.unwrap();
     
-    return Ok(Some(balance));
-}
-
-pub async fn get_name(student_id: String, jwt: String) -> Result<Option<String>, Box<dyn std::error::Error>> {
     let reqwest_client = reqwest::Client::new();
 
     let name_callback = reqwest_client

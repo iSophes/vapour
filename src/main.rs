@@ -9,6 +9,7 @@ use std::rc::Rc;
 
 mod qrscan;
 mod auth;
+mod database;
 
 slint::include_modules!();
 
@@ -28,94 +29,23 @@ async fn start_screen(ui: &AppWindow, failed_scan_index: Rc<Cell<u32>>) {
     let scanned = qrscan::scan_qr().unwrap(); 
     let does_account_exist = auth::does_account_exist(scanned.clone()).await.unwrap();
 
-    if !does_account_exist {
-        ui.set_currentMenu("noaccount".into());
+    // TODO: Check if they have an account in our database
+    // if not, create one. else get it
+    // grab name from my runshaw
+    // if no name then just set text to hello!
+    let mut used_string = String::from("Hello!");
 
-        let weak_ui = ui.as_weak();
+    if does_account_exist {
+        let mut name = auth::get_name(scanned.clone()).await.unwrap().unwrap();
 
-        failed_scan_index.set(failed_scan_index.get() + 1);
-        let current_get = failed_scan_index.get();
-        let cloned_value = failed_scan_index.clone();
+        if name.chars().next().unwrap() == "\"".to_owned().chars().next().unwrap() {
+            name = remove_first_and_last(&name).to_string();
+        }
 
-        slint::spawn_local(async move {
-            tokio::time::sleep(std::time::Duration::from_secs(60)).await;
-
-            if current_get != cloned_value.get() {
-                return; // Multiple users have failed. 
-            }
-
-            if let Some(ui) = weak_ui.upgrade() {
-                failed_scan_index.set(0);
-                if ui.get_currentMenu() != "noaccount" {
-                    return;
-                }
-
-                ui.set_currentMenu("startup".into());
-            }
-        }).unwrap();
-    } else {
-        let weak_ui = ui.as_weak();
-
-        ui.set_currentMenu("passwordinput".into());
-        ui.on_check_password(move |password| {
-            let id = scanned.clone();
-            let cloned_password = password.clone();
-            let weak_ui_clone = weak_ui.clone();
-            let _ = slint::spawn_local(async move {
-                let strong_ui = weak_ui_clone.upgrade().unwrap();
-                check_password(&strong_ui, id.clone(), cloned_password.to_string()).await;
-            });
-        });
+        used_string = format!("Hello!, {}!", name);
     }
-}
 
-async fn check_password(ui: &AppWindow, student_id: String, password: String) {
-    let id_after_auth = student_id.clone();
-    match auth::check_password_and_authenticate(student_id, password).await {
-        Ok(Some(jwt_token)) => {   
-            let id_for_name = id_after_auth;
-            let jwt_for_balance = jwt_token.clone();
-            let jwt_for_name = jwt_token.clone();
-
-            let mut balance = auth::get_balance(jwt_for_balance).await.unwrap().unwrap();
-            let mut verified: bool = false;
-            println!("{}", balance);
-
-            if balance.chars().next().unwrap() == "\"".to_owned().chars().next().unwrap() {
-                if balance.chars().nth(1) != "£".to_owned().chars().next() {
-                    println!("ERROR 2!!!!! {}", balance);
-                    // we will add proper error handling later
-                    return;
-                }
-
-                verified = true;
-            }
-
-            if balance.chars().next().unwrap() != "£".to_owned().chars().next().unwrap() && !verified {
-                println!("ERROR!!!!! {}", balance);
-                // we will add proper error handling later
-                return;
-            }
-
-            let mut name = auth::get_name(id_for_name, jwt_for_name).await.unwrap().unwrap();
-            
-            if name.chars().next().unwrap() == "\"".to_owned().chars().next().unwrap() {
-                name = remove_first_and_last(&name).to_string();
-            }
-
-            if balance.chars().next().unwrap() == "\"".to_owned().chars().next().unwrap() {
-                balance = remove_first_and_last(&balance).to_string();
-            }
-
-            ui.set_name(name.into());
-            ui.set_balance(balance.into());
-            ui.set_currentMenu("topup".into());
-
-            
-        },
-        Ok(None) => {println!("failed")},
-        Err(_error)        => {println!("fail")},
-    }
+    ui.set_name(used_string.into());
 }
 
 #[tokio::main]
