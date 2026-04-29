@@ -66,7 +66,20 @@ async fn check_password(ui: &AppWindow, student_id: String, password: String) {
     match auth::check_password_and_authenticate(student_id, password).await {
         Ok(Some(jwt_token)) => {   
             let balance = auth::get_balance(jwt_token).await.unwrap().unwrap();
-            if balance.chars().next().unwrap() != "£".to_owned().chars().next().unwrap() {
+            let mut verified: bool = false;
+            println!("{}", balance);
+
+            if balance.chars().next().unwrap() == "\"".to_owned().chars().next().unwrap() {
+                if balance.chars().nth(1) != "£".to_owned().chars().next() {
+                    println!("ERROR 2!!!!! {}", balance);
+                    // we will add proper error handling later
+                    return;
+                }
+
+                verified = true;
+            }
+
+            if balance.chars().next().unwrap() != "£".to_owned().chars().next().unwrap() && !verified {
                 println!("ERROR!!!!! {}", balance);
                 // we will add proper error handling later
                 return;
