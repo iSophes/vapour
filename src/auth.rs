@@ -52,9 +52,6 @@ pub async fn check_password_and_authenticate(student_id: String, password: Strin
 }
 
 pub async fn get_name(student_id: String) -> Result<Option<String>, Box<dyn std::error::Error>> {
-    let my_id = env::var("MY_RUNSHAW_ID").expect("").to_string();
-    let my_password = env::var("MY_RUNSHAW_ID").expect("").to_string()
-    let jwt = check_password_and_authenticate(my_id, my_password).await?.unwrap();
     
     let reqwest_client = reqwest::Client::new();
 

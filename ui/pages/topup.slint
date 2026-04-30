@@ -2,7 +2,7 @@ import { Button } from "std-widgets.slint";
 import { Palette } from "../components/palette.slint";
 import { customButton } from "../components/customButton.slint";
 export component topup inherits Rectangle {
-    in property <string> student_name: "Hello, Sophie";
+    in property <string> hello_text: "Hello, Sophie";
     in property <string> balance: "£3.67";
 
     callback press_buy(float);
@@ -15,7 +15,7 @@ export component topup inherits Rectangle {
         width: 50%;
 
         Text {
-            text: student_name;
+            text: hello_text;
             font-size: 64px;
             font-family: Palette.fontFamily;
             font-weight: 600;

@@ -2,50 +2,31 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use dotenv::dotenv;
-use std::cell::Cell;
 use std::env;
 use std::error::Error;
-use std::rc::Rc;
-
+mod apis;
 mod qrscan;
-mod auth;
-mod database;
 
-slint::include_modules!();
+slint::include_modules!(); // yes this code errors, i do not care
 
-fn remove_first_and_last(value: &str) -> &str {
-    let mut chars = value.chars();
-    chars.next();
-    chars.next_back();
-    return chars.as_str();
-}
-
-async fn start_screen(ui: &AppWindow, failed_scan_index: Rc<Cell<u32>>) {
+async fn start_screen(ui: &AppWindow, appwrite_client: &appwrite::client::Client) {
     ui.set_highContrast(false);
     ui.set_currentMenu("startup".into());
 
     tokio::time::sleep(std::time::Duration::from_secs(3)).await; // Temporary sleep for testing purposes
 
-    let scanned = qrscan::scan_qr().unwrap(); 
-    let does_account_exist = auth::does_account_exist(scanned.clone()).await.unwrap();
+    let scanned = qrscan::scan_qr().unwrap();
+    let used_string = apis::my_runshaw_api::get_hello_text(&scanned).await.unwrap();
 
-    // TODO: Check if they have an account in our database
-    // if not, create one. else get it
-    // grab name from my runshaw
-    // if no name then just set text to hello!
-    let mut used_string = String::from("Hello!");
+    // handle database stuff
 
-    if does_account_exist {
-        let mut name = auth::get_name(scanned.clone()).await.unwrap().unwrap();
+    let does_user_exist = apis::sophie_api::does_user_exist(appwrite_client, &scanned).await.unwrap();
 
-        if name.chars().next().unwrap() == "\"".to_owned().chars().next().unwrap() {
-            name = remove_first_and_last(&name).to_string();
-        }
-
-        used_string = format!("Hello!, {}!", name);
+    if !does_user_exist {
+        apis::sophie_api::create_user(appwrite_client, &scanned).await;
     }
-
-    ui.set_name(used_string.into());
+    
+    ui.set_hello_text(used_string.into());
 }
 
 #[tokio::main]
@@ -54,8 +35,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let ui = AppWindow::new()?;
     let weakui = ui.as_weak();
-    
-    let failed_scan_index = Rc::new(Cell::new(0u32));
+
+    let appwrite_project_id = env::var("PROJECT_ID")
+        .expect("No appwrite project ID")
+        .to_string();
+
+    let appwrite_api_key = env::var("APPWRITE_API_KEY")
+        .expect("No appwrite project API Key")
+        .to_string();
+
+    let appwrite_client = appwrite::Client::new()
+        .set_endpoint("https://fra.cloud.appwrite.io/v1")
+        .set_project(appwrite_project_id)
+        .set_key(appwrite_api_key);
 
     std::thread::spawn(move || loop {
         let now = chrono::Local::now()
@@ -76,9 +68,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let second_ui = ui.as_weak();
 
     slint::spawn_local(async move {
-        start_screen(&second_ui.upgrade().unwrap(), failed_scan_index).await;
-    }).unwrap();
-    
+        start_screen(&second_ui.upgrade().unwrap(), &appwrite_client).await;
+    })
+    .unwrap();
+
     ui.run()?;
 
     Ok(())
