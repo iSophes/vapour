@@ -22,11 +22,15 @@ async fn start_screen(ui: &AppWindow, appwrite_client: &appwrite::client::Client
 
     let does_user_exist = apis::sophie_api::does_user_exist(appwrite_client, &scanned).await.unwrap();
 
-    if !does_user_exist {
-        apis::sophie_api::create_user(appwrite_client, &scanned).await;
+    if does_user_exist == false {
+        let _created_row = apis::sophie_api::create_user(appwrite_client, &scanned).await; // we have this just to shut the thing up
     }
-    
+
+    let balance = apis::sophie_api::get_user_balance(appwrite_client, &scanned).await;
+
+    ui.set_balance(balance.into());
     ui.set_hello_text(used_string.into());
+    ui.set_currentMenu("topup".into())
 }
 
 #[tokio::main]

@@ -10,12 +10,17 @@ fn remove_first_and_last(value: &str) -> &str {
     return chars.as_str();
 }
 
-
 async fn get_my_runshaw_jwt() -> Result<Option<String>, Box<dyn std::error::Error>> {
     let reqwest_client = reqwest::Client::new();
-    let project_id = env::var("RUNSHAW_ID").expect("My Runshaw Project ID not there!").to_string();
-    let student_id = env::var("MY_RUNSHAW_ID").expect("No MY RUNSHAW ID").to_string();
-    let password = env::var("MY_RUNSHAW_PASSWORD").expect("No MY RUNSHAW password").to_string();
+    let project_id = env::var("RUNSHAW_ID")
+        .expect("My Runshaw Project ID not there!")
+        .to_string();
+    let student_id = env::var("MY_RUNSHAW_ID")
+        .expect("No MY RUNSHAW ID")
+        .to_string();
+    let password = env::var("MY_RUNSHAW_PASSWORD")
+        .expect("No MY RUNSHAW password")
+        .to_string();
 
     let session_response = reqwest_client
         .post("https://appwrite.danieldb.uk/v1/account/sessions/email")
@@ -29,7 +34,7 @@ async fn get_my_runshaw_jwt() -> Result<Option<String>, Box<dyn std::error::Erro
         .await?;
 
     if !session_response.status().is_success() {
-        return Ok(None)     
+        return Ok(None);
     }
 
     let cookie = session_response
@@ -51,16 +56,21 @@ async fn get_my_runshaw_jwt() -> Result<Option<String>, Box<dyn std::error::Erro
 
     let jwt_string = jwt_result["jwt"].as_str().unwrap().to_string();
 
-    return Ok(Some(jwt_string))
+    return Ok(Some(jwt_string));
 }
 
 pub async fn does_account_exist(student_id: &String) -> Result<bool, reqwest::Error> {
-    let does_exist = reqwest::get("https://runshaw-api.danieldb.uk/api/exists/".to_owned() + &student_id).await?;
+    let does_exist =
+        reqwest::get("https://runshaw-api.danieldb.uk/api/exists/".to_owned() + &student_id)
+            .await?;
     let body = does_exist.text().await?;
     return Ok(body == "{\"exists\":true}");
 }
 
-async fn get_name_from_student_id(jwt: &str, student_id: &String) -> Result<Option<String>, Box<dyn std::error::Error>> {
+async fn get_name_from_student_id(
+    jwt: &str,
+    student_id: &String,
+) -> Result<Option<String>, Box<dyn std::error::Error>> {
     let reqwest_client = reqwest::Client::new();
 
     let name_callback = reqwest_client
@@ -73,11 +83,11 @@ async fn get_name_from_student_id(jwt: &str, student_id: &String) -> Result<Opti
         .await?;
 
     if name_callback["detail"] != serde_json::Value::Null {
-        return Ok(Some("FAIL!!!!!! RETRY!!!".to_owned()))
-    } 
+        return Ok(Some("FAIL!!!!!! RETRY!!!".to_owned()));
+    }
 
     let mut name = name_callback["name"].to_string();
-    
+
     if name.chars().next().unwrap() == "\"".chars().next().unwrap() {
         name = remove_first_and_last(&name).to_string();
     }
@@ -89,7 +99,7 @@ pub async fn get_hello_text(student_id: &String) -> Result<String, Box<dyn std::
     let jwt = get_my_runshaw_jwt().await?.unwrap();
 
     if !does_account_exist(student_id).await? {
-        return Ok("Hello!".to_owned())
+        return Ok("Hello!".to_owned());
     }
 
     let mut name = get_name_from_student_id(&jwt, student_id).await?.unwrap();
@@ -97,7 +107,7 @@ pub async fn get_hello_text(student_id: &String) -> Result<String, Box<dyn std::
         // Retry and if it fails, fallback to hello. (Somethings probably going really bad that I don't want to deal with)
         name = get_name_from_student_id(&jwt, student_id).await?.unwrap();
         if name.starts_with("FAIL!") {
-            return Ok("Hello!".to_owned());    
+            return Ok("Hello!".to_owned());
         }
     }
 
