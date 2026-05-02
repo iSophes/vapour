@@ -1,13 +1,15 @@
 import { Button, VerticalBox } from "std-widgets.slint";
-import {startup} from "pages/startup.slint";
+import { startup } from "pages/startup.slint";
 import { topup } from "pages/topup.slint";
-import { Palette } from "components/palette.slint";
+import { customAmount } from "pages/custom_amount.slint";
+import { card_input } from "pages/card_input.slint";
 
-export component AppWindow inherits Window {    
+import { Palette } from "components/palette.slint";
+import { accept } from "pages/accept.slint";
+
+export component AppWindow inherits Window {
     background: Palette.highContrast ? #000000 : #1e1e2e;
-    animate background {
-         duration: 300ms;
-    }
+    animate background { duration: 300ms; }
 
     full-screen: true;
 
@@ -15,10 +17,15 @@ export component AppWindow inherits Window {
     in-out property <string> time;
     in property <string> balance;
     in property <string> hello_text;
+    in-out property <string> custom_amount;
 
     in-out property <bool> highContrast: Palette.highContrast;
+    in property <image> current_frame;
 
-    callback check_password(string);
+    callback add_letter(letter: string);
+    callback remove_letter();
+    callback submit();
+    callback cancel_payment();
 
     changed highContrast => {
         Palette.highContrast = highContrast;
@@ -33,13 +40,9 @@ export component AppWindow inherits Window {
     property <color> animated-textColorMain: Palette.textColorMain;
     property <color> animated-textColorAccent: Palette.textColorAccent;
 
-    animate animated-textColorMain {
-        duration: 300ms;
-    }
+    animate animated-textColorMain { duration: 300ms; }
 
-    animate animated-textColorAccent {
-        duration: 300ms;
-    }
+    animate animated-textColorAccent { duration: 300ms; }
 
     function set_theme(contrast: bool) {
         animated-textColorMain = contrast ? #ffffff : #cdd6f4;
@@ -52,13 +55,51 @@ export component AppWindow inherits Window {
     startup {
         opacity: currentMenu == "startup" ? 1 : 0;
         time: time;
-        
     }
 
     topup {
         opacity: currentMenu == "topup" ? 1 : 0;
         balance: balance;
         hello_text: hello_text;
+        currentMenu: currentMenu;
+        press_buy(inputted_amount) => {
+            custom_amount = "" + inputted_amount;
+            submit();
+        }
+        go_back => {
+            currentMenu = "setup"
+        }
+        custom_amount => {
+            currentMenu = "customAmount"
+        }
     }
 
+    customAmount {
+        add_letter(letter) => {
+            add_letter(letter);
+        };
+        remove_letter => {
+            remove_letter();
+        };
+        go_back => {
+            currentMenu = "setup";
+        }
+        submit => {
+            submit();
+        }
+        amount: custom_amount;
+        opacity: currentMenu == "customAmount" ? 1 : 0;
+    }
+
+    card-input {
+        amount: custom_amount;
+        opacity: currentMenu == "card_input" ? 1 : 0;
+        cancel => {cancel_payment();}
+    }
+
+    accept {
+        opacity: currentMenu == "accept" ? 1 : 0;
+        current_frame: current_frame;
+        amount: balance;
+    }
 }

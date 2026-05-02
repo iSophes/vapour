@@ -4,9 +4,10 @@ import { customButton } from "../components/customButton.slint";
 export component topup inherits Rectangle {
     in property <string> hello_text: "Hello, Sophie";
     in property <string> balance: "£3.67";
-
+    in-out property <string> currentMenu;
     callback press_buy(float);
     callback custom_amount();
+    callback go_back();
 
     VerticalLayout { // Central text layout
         alignment: center;
@@ -145,7 +146,7 @@ export component topup inherits Rectangle {
             custom_font_weight: 400;
             text: "Log Out";
             callback => {
-                custom_amount()
+                go_back()
             }
         }
     }

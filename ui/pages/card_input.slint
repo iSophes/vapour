@@ -1,0 +1,126 @@
+import { Button } from "std-widgets.slint";
+import { Palette } from "../components/palette.slint";
+import { customButton } from "../components/customButton.slint";
+import { keypad_button } from "../components/keypad_button.slint";
+export component card_input inherits Rectangle {
+    in property <string> amount: "";
+    callback cancel();
+
+    Rectangle {
+        width: 100%;
+        height: 100%;
+
+        Text {
+            text: "Use the card reader to make the payment.";
+            font-size: 25px;
+            font-family: Palette.fontFamily;
+            font-weight: 300;
+            color: Palette.textColorAccent;
+            x: 40px;
+            y: (parent.height / 2) - (self.height / 2);
+        }
+        
+        Image {
+            property <bool> bob: false;
+
+            Timer {
+                interval: 800ms;
+                running: true;
+                triggered => {bob = !bob}
+            }
+
+            source: @image-url("../assets/arrow.svg");
+            rotation-origin-x: 90px;
+            x: (bob ? 10px : 20px);
+            y: (parent.height / 2) - (self.height / 2);
+            colorize: Palette.textColorAccent;
+            width: 40px;
+            height: 40px;
+
+            animate y {
+                duration: 800ms;
+                easing: ease-in-out-quad;    
+            }
+        }
+    }
+
+    VerticalLayout { // Central text layout
+        alignment: center;
+        spacing: 16px;
+        padding-bottom: 20px;
+        width: 50%;
+
+        Text {
+            text: "Waiting for payment...";
+            font-size: 64px;
+            font-family: Palette.fontFamily;
+            font-weight: 600;
+            color: Palette.textColorMain;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+        Text {
+            text: "To pay: £" + amount;
+            font-size: 32px;
+            font-family: Palette.fontFamily;
+            font-weight: 400;
+            color: Palette.textColorAccent;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+
+        customButton {
+            x: (parent.width / 2) - (self.width / 2);
+            custom_width: 430;
+            custom_height: 100;
+            custom_font_size: 32;
+            custom_font_weight: 400;
+            text: "Cancel";
+            callback => {
+                cancel()
+            }
+        }
+    }
+
+    Rectangle { // Used for things outside vertical layout
+        width: 100%;
+        height: 100%;
+
+        // Top Right
+
+        customButton {
+            text: Palette.highContrast ? "Disable High Contrast" : "Enable High Contrast";
+            custom_width: 400;
+            custom_height: 150;
+            x: parent.width - 420px;
+            y: 16px;
+            custom_font_size: 30;
+            custom_font_weight: 700;
+            callback => {
+                Palette.highContrast = !Palette.highContrast
+            };
+        }
+
+        // Bottom
+
+        Text {
+            text: "Vapour Payment Terminal";
+            font-size: 15px;
+            font-family: Palette.fontFamily;
+            font-weight: 300;
+            color: Palette.textColorAccent;
+            x: 16px;
+            y: parent.height - self.height - 16px;
+        }
+
+        Text {
+            text: "Made with ❤️ by iSophes";
+            font-size: 15px;
+            font-family: Palette.fontFamily;
+            font-weight: 300;
+            color: Palette.textColorAccent;
+            x: parent.width - self.width - 16px;
+            y: parent.height - self.height - 16px;
+        }
+    }
+}

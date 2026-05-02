@@ -28,10 +28,12 @@ pub fn scan_qr() -> Option<String> {
         }
     }*/
 
-    // NOTE: This is used for testing only!!!! 
+    // NOTE: This is used for testing only!!!!
 
     dotenv().ok();
-    let student_id = env::var("MY_RUNSHAW_ID").expect("Student ID not there!").to_string();
+    let student_id = env::var("MY_RUNSHAW_ID")
+        .expect("Student ID not there!")
+        .to_string();
 
-    return Some(student_id)
+    return Some(student_id);
 }

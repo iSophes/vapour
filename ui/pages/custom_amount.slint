@@ -1,0 +1,171 @@
+import { Button } from "std-widgets.slint";
+import { Palette } from "../components/palette.slint";
+import { customButton } from "../components/customButton.slint";
+import { keypad_button } from "../components/keypad_button.slint";
+export component customAmount inherits Rectangle {
+    in-out property <string> amount: "";
+
+    callback add_letter(letter: string);
+    callback remove_letter();
+    callback go_back();
+    callback submit();
+    property <[[int]]> list-of-numbers: [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+
+    VerticalLayout { // Central text layout
+        alignment: center;
+        spacing: 16px;
+        padding-bottom: 20px;
+        width: 50%;
+
+        Text {
+            text: "Input an amount.";
+            font-size: 64px;
+            font-family: Palette.fontFamily;
+            font-weight: 600;
+            color: Palette.textColorMain;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+
+        Text {
+            text: "Min: £2.50 | Max: £500";
+            font-size: 32px;
+            font-family: Palette.fontFamily;
+            font-weight: 400;
+            color: Palette.textColorAccent;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+
+        Rectangle {
+            width: 100%;
+            height: 25%;
+
+            VerticalLayout {
+                padding-top: 30px;
+                alignment: center;
+                spacing: 30px;
+
+                for row in list-of-numbers: HorizontalLayout {
+                    spacing: 60px;
+                    alignment: center;
+
+                    for button in row: keypad_button {
+                        text: button;
+                        clicked => {
+                            add_letter(button)
+                        }
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 60px;
+                    alignment: center;
+                    keypad_button {
+                        text: ".";
+                        clicked => {
+                            add_letter(".")
+                        };
+                    }
+
+                    keypad_button {
+                        text: "0";
+                        clicked => {
+                            add_letter("0")
+                        };
+                    }
+
+                    keypad_button {
+                        text: "←";
+                        clicked => {
+                            remove_letter()
+                        };
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            x: (parent.width / 2) - (self.width / 2);
+            width: 430px;
+            height: 100px;
+            border-radius: 4px;
+            border-color: Palette.highContrast ? #ffff00 : #45475a;
+            border-width: 2px;
+            background: Palette.highContrast ? #000000 : #313244;
+            Text {
+                text: amount;
+                font-family: Palette.fontFamily;
+                font-size: 28px;
+                font-weight: 400;
+                color: Palette.textColorMain;    
+            }
+        }
+
+        customButton {
+            x: (parent.width / 2) - (self.width / 2);
+            custom_width: 430;
+            custom_height: 100;
+            custom_font_size: 32;
+            custom_font_weight: 400;
+            text: "Confirm";
+            callback => {
+                submit()
+            }
+        }
+
+        customButton {
+            x: (parent.width / 2) - (self.width / 2);
+            custom_width: 430;
+            custom_height: 100;
+            custom_font_size: 32;
+            custom_font_weight: 400;
+            text: "Go back";
+            callback => {
+                go_back()
+            }
+        }
+    }
+
+    Rectangle { // Used for things outside vertical layout
+        width: 100%;
+        height: 100%;
+
+        // Top Right
+
+        customButton {
+            text: Palette.highContrast ? "Disable High Contrast" : "Enable High Contrast";
+            custom_width: 400;
+            custom_height: 150;
+            x: parent.width - 420px;
+            y: 16px;
+            custom_font_size: 30;
+            custom_font_weight: 700;
+            callback => {
+                Palette.highContrast = !Palette.highContrast
+            };
+        }
+
+        // Bottom
+
+        Text {
+            text: "Vapour Payment Terminal";
+            font-size: 15px;
+            font-family: Palette.fontFamily;
+            font-weight: 300;
+            color: Palette.textColorAccent;
+            x: 16px;
+            y: parent.height - self.height - 16px;
+        }
+
+        Text {
+            text: "Made with ❤️ by iSophes";
+            font-size: 15px;
+            font-family: Palette.fontFamily;
+            font-weight: 300;
+            color: Palette.textColorAccent;
+            x: parent.width - self.width - 16px;
+            y: parent.height - self.height - 16px;
+        }
+    }
+}

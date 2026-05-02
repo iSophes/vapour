@@ -1,0 +1,35 @@
+import { Button, StyleMetrics } from "std-widgets.slint";
+import { Palette } from "palette.slint";
+export component keypad_button inherits TouchArea {
+    in property <string> text;
+    callback callback;
+
+    width: 100px;
+    height: 100px;
+
+    clicked => root.callback();
+
+    Rectangle {
+        border-radius: 4px;
+        border-color: Palette.highContrast ? #ffff00 : #45475a;
+        border-width: 2px;
+        width: 100px;
+        height: 100px;
+        background: Palette.highContrast ? #000000 : #313244;
+
+        animate border-color { duration: 300ms; }
+
+        animate background { duration: 300ms; }
+
+        Text {
+            font-size: 50px;
+            font-weight: 700;
+            text: root.text;
+            font-family: Palette.fontFamily;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            color: Palette.highContrast ? #ffffff : #a6adc8;
+            animate color { duration: 300ms; }
+        }
+    }
+}
