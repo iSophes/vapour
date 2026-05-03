@@ -6,7 +6,7 @@
 use dotenv::dotenv;
 use std::env;
 
-pub fn scan_qr() -> Option<String> {
+pub async fn scan_qr() -> Result<String, Box<dyn std::error::Error>> {
     /*let mut camera = Camera::new(
         CameraIndex::Index(0),
         RequestedFormat::new::<nokhwa::pixel_format::RgbFormat>(RequestedFormatType::AbsoluteHighestFrameRate)
@@ -35,5 +35,5 @@ pub fn scan_qr() -> Option<String> {
         .expect("Student ID not there!")
         .to_string();
 
-    return Some(student_id);
+    return Ok(student_id);
 }

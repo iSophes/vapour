@@ -2,12 +2,9 @@ import { Button, StyleMetrics } from "std-widgets.slint";
 import { Palette } from "palette.slint";
 export component keypad_button inherits TouchArea {
     in property <string> text;
-    callback callback;
 
     width: 100px;
     height: 100px;
-
-    clicked => root.callback();
 
     Rectangle {
         border-radius: 4px;

@@ -5,37 +5,21 @@ use dotenv::dotenv;
 use std::env;
 use std::error::Error;
 use tokio_util::sync::CancellationToken;
-use std::rc::Rc;
-use std::cell::RefCell;
-use slint::{Timer, TimerMode};
 
 mod apis;
 mod qrscan;
-mod gif_decoder;
 
 slint::include_modules!(); // yes this code errors, i do not care
 
-fn gif(ui: AppWindow, path: &str) {
-    let frames = Rc::new(gif_decoder::decode_gif_frames(path));
-    let index = Rc::new(RefCell::new(0usize));
-    let ui_handle = ui.as_weak();
-
-    let timer = Timer::default();
-    timer.start(TimerMode::Repeated, std::time::Duration::from_millis(100), move || {
-        let ui = ui_handle.unwrap();
-        let i = *index.borrow();
-        ui.set_current_frame(frames[i].clone());
-        *index.borrow_mut() = (i + 1) % frames.len();
-    });
-}
-
-async fn start_screen(ui: &AppWindow, appwrite_client: &appwrite::client::Client) {
+async fn start_screen(register: bool, ui: &AppWindow, appwrite_client: &appwrite::client::Client) {
     ui.set_highContrast(false);
     ui.set_currentMenu("startup".into());
 
-    tokio::time::sleep(std::time::Duration::from_secs(3)).await; // Temporary sleep for testing purposes
+    let weak_ui = ui.as_weak();
+    
+    tokio::time::sleep(std::time::Duration::from_secs(3)).await; // test wait
 
-    let scanned = qrscan::scan_qr().unwrap();
+    let scanned = qrscan::scan_qr().await.unwrap();
     let used_string = apis::my_runshaw_api::get_hello_text(&scanned)
         .await
         .unwrap();
@@ -53,7 +37,32 @@ async fn start_screen(ui: &AppWindow, appwrite_client: &appwrite::client::Client
 
     let balance = apis::sophie_api::get_user_balance(appwrite_client, &scanned).await;
 
-    keypad_ui(appwrite_client, &scanned, ui).await;
+    let cloned_appwrite = appwrite_client.clone();
+    if register {
+        ui.on_submit(move || {
+            let strong_ui = weak_ui.upgrade().unwrap();
+            let amount = strong_ui.get_custom_amount();
+            let cloned_id = scanned.clone();
+
+            if amount.is_empty() {
+                return; 
+            }
+
+            let actual_string = amount.as_str().to_owned();
+
+            let price_as_float = convert_string_to_double(actual_string);
+            let moved_appwrite_clone = cloned_appwrite.clone();
+
+            slint::spawn_local(async move {
+                let cloned_again_variable = moved_appwrite_clone.clone();
+                begin_card_read(&cloned_again_variable, cloned_id.to_owned(), &strong_ui, price_as_float).await;
+            }).unwrap();
+        });
+
+        keypad_ui(ui).await;
+    }
+
+    
     ui.set_balance(balance.into());
     ui.set_hello_text(used_string.into());
     ui.set_currentMenu("topup".into());
@@ -79,15 +88,19 @@ fn convert_string_to_double(string: String) -> f32 {
     return string.parse().unwrap();
 }
 
-fn convert_money_to_float(money: String) {
-    let mut fixed_money = "";
+fn remove_pound_sign_from_money(money: String) -> String {
+    if !money.contains("£") {
+        return money;
+    }
 
+    let mut chars = money.chars();
+    chars.next();
+    return chars.as_str().to_owned()
 }
 
-async fn keypad_ui(appwrite_client: &appwrite::client::Client, student_id: &String, ui: &AppWindow) {
+async fn keypad_ui(ui: &AppWindow) {
     let cloned_ui_for_add_letter = ui.as_weak();
     let cloned_ui_for_remove_letter = ui.as_weak();
-    let cloned_ui_for_submit = ui.as_weak();
 
     ui.on_add_letter(move |letter| {
         let amount = cloned_ui_for_add_letter.upgrade().unwrap().get_custom_amount();
@@ -108,21 +121,9 @@ async fn keypad_ui(appwrite_client: &appwrite::client::Client, student_id: &Stri
         new_string.pop();
         cloned_ui_for_remove_letter.upgrade().unwrap().set_custom_amount(new_string.into());
     });
-
-    let cloned_appwrite = appwrite_client.clone();
-    let cloned_id = student_id.clone();
-
-    ui.on_submit(move || {
-        let amount = cloned_ui_for_submit.upgrade().unwrap().get_custom_amount();
-        let actual_string = amount.as_str().to_owned();
-
-        let price_as_float = convert_string_to_double(actual_string);
-
-        let _ = begin_card_read(&cloned_appwrite, cloned_id.to_owned(), cloned_ui_for_submit.clone().upgrade().unwrap(), price_as_float);
-    });
 }
 
-async fn begin_card_read(appwrite_client: &appwrite::client::Client, user_id: String, ui: AppWindow, price: f32) {
+async fn begin_card_read(appwrite_client: &appwrite::client::Client, user_id: String, ui: &AppWindow, price: f32) {
     ui.set_currentMenu("card_input".into());
 
     let cancel_token = CancellationToken::new();
@@ -132,14 +133,30 @@ async fn begin_card_read(appwrite_client: &appwrite::client::Client, user_id: St
         cancel_token.cancel();
     });
 
-    tokio::select! {
+    tokio::select! { // we need this so that we can cancel it.
         result = apis::card_reader::read_card(price) => {
             match result {
                 Ok(true) => {
                     let current_balance = apis::sophie_api::get_user_balance(appwrite_client, &user_id).await;
+                    let fixed_money = convert_string_to_double(remove_pound_sign_from_money(current_balance));
 
-                    apis::sophie_api::set_balance(appwrite_client, user_id, );
+                    let added_money = price + fixed_money;
+                    let converted_money = "£".to_owned() + &added_money.to_string();
+                    let _ = apis::sophie_api::set_balance(appwrite_client, &user_id, &converted_money).await;
+
+                    ui.set_balance(converted_money.into());
                     ui.set_currentMenu("accept".into());
+
+                    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                    ui.set_currentMenu("startup".into());
+
+                    let cloned_appwrite = appwrite_client.clone().to_owned();
+                    let weak_ui = ui.as_weak();
+                    slint::spawn_local(async move {
+                        let double_clone = weak_ui.upgrade().unwrap();
+                        start_screen(false, &double_clone, &cloned_appwrite).await;
+                    })
+                    .unwrap();
                 }
                 Ok(false) => {}
                 Err(_) => {}
@@ -193,7 +210,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let second_ui = ui.as_weak();
 
     slint::spawn_local(async move {
-        start_screen(&second_ui.upgrade().unwrap(), &appwrite_client).await;
+        start_screen(true,&second_ui.upgrade().unwrap(), &appwrite_client).await;
     })
     .unwrap();
 

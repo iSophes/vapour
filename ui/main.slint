@@ -20,7 +20,6 @@ export component AppWindow inherits Window {
     in-out property <string> custom_amount;
 
     in-out property <bool> highContrast: Palette.highContrast;
-    in property <image> current_frame;
 
     callback add_letter(letter: string);
     callback remove_letter();
@@ -67,11 +66,12 @@ export component AppWindow inherits Window {
             submit();
         }
         go_back => {
-            currentMenu = "setup"
+            currentMenu = "startup"
         }
         custom_amount => {
             currentMenu = "customAmount"
         }
+        enable-touch: currentMenu == "topup" ? true : false;
     }
 
     customAmount {
@@ -82,16 +82,17 @@ export component AppWindow inherits Window {
             remove_letter();
         };
         go_back => {
-            currentMenu = "setup";
+            currentMenu = "topup";
         }
         submit => {
             submit();
         }
         amount: custom_amount;
         opacity: currentMenu == "customAmount" ? 1 : 0;
+        enable-touch: currentMenu == "customAmount" ? true : false;
     }
 
-    card-input {
+    card_input {
         amount: custom_amount;
         opacity: currentMenu == "card_input" ? 1 : 0;
         cancel => {cancel_payment();}
@@ -99,7 +100,6 @@ export component AppWindow inherits Window {
 
     accept {
         opacity: currentMenu == "accept" ? 1 : 0;
-        current_frame: current_frame;
         amount: balance;
     }
 }

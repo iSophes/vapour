@@ -4,6 +4,7 @@ import { customButton } from "../components/customButton.slint";
 import { keypad_button } from "../components/keypad_button.slint";
 export component customAmount inherits Rectangle {
     in-out property <string> amount: "";
+    in property <bool> enable-touch: false;
 
     callback add_letter(letter: string);
     callback remove_letter();
@@ -55,31 +56,36 @@ export component customAmount inherits Rectangle {
                         clicked => {
                             add_letter(button)
                         }
+                        enabled: enable-touch;
                     }
                 }
 
                 HorizontalLayout {
                     spacing: 60px;
                     alignment: center;
+                    height: 100px;
                     keypad_button {
                         text: ".";
+                        enabled: enable-touch;
                         clicked => {
                             add_letter(".")
-                        };
+                        }
                     }
 
                     keypad_button {
                         text: "0";
+                        enabled: enable-touch;
                         clicked => {
                             add_letter("0")
-                        };
+                        }
                     }
 
                     keypad_button {
                         text: "←";
+                        enabled: enable-touch;
                         clicked => {
                             remove_letter()
-                        };
+                        }
                     }
                 }
             }

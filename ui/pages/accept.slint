@@ -4,17 +4,18 @@ import { customButton } from "../components/customButton.slint";
 import { keypad_button } from "../components/keypad_button.slint";
 export component accept inherits Rectangle {
     in property <string> amount: "";
-    in property <image> current_frame;
-    
-    VerticalBox {
+
+    VerticalLayout {
+        alignment: center;
         spacing: 24px;
 
         Image {
-            source: current_frame;
+            source: @image-url("../assets/check.png");
             width: 150px;
             height: 150px;
             vertical-alignment: center;
             horizontal-alignment: center;
+            x: (parent.width / 2) - (self.width / 2);
         }
 
         Text {
@@ -23,35 +24,26 @@ export component accept inherits Rectangle {
             font-family: Palette.fontFamily;
             font-size: 64px;
             font-weight: 700;
+            x: (parent.width / 2) - (self.width / 2);
+            horizontal-alignment: center;
+            vertical-alignment: center;
         }
 
         Text {
             color: Palette.textColorAccent;
-            text: "Your new balance is £"+ amount;
+            text: "Your new balance is " + amount;
             font-family: Palette.fontFamily;
             font-size: 32px;
             font-weight: 400;
+            x: (parent.width / 2) - (self.width / 2);
+            horizontal-alignment: center;
+            vertical-alignment: center;
         }
     }
 
     Rectangle {
         width: 100%;
         height: 100%;
-
-        // Top Right
-
-        customButton {
-            text: Palette.highContrast ? "Disable High Contrast" : "Enable High Contrast";
-            custom_width: 400;
-            custom_height: 150;
-            x: parent.width - 420px;
-            y: 16px;
-            custom_font_size: 30;
-            custom_font_weight: 700;
-            callback => {
-                Palette.highContrast = !Palette.highContrast
-            };
-        }
 
         // Bottom
 
