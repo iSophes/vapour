@@ -6,6 +6,8 @@ import { card_input } from "pages/card_input.slint";
 
 import { Palette } from "components/palette.slint";
 import { accept } from "pages/accept.slint";
+import { decline } from "pages/decline.slint";
+import { fail } from "pages/fail.slint";
 
 export component AppWindow inherits Window {
     background: Palette.highContrast ? #000000 : #1e1e2e;
@@ -25,6 +27,7 @@ export component AppWindow inherits Window {
     callback remove_letter();
     callback submit();
     callback cancel_payment();
+    callback go_to_start();
 
     changed highContrast => {
         Palette.highContrast = highContrast;
@@ -66,7 +69,7 @@ export component AppWindow inherits Window {
             submit();
         }
         go_back => {
-            currentMenu = "startup"
+            go_to_start();
         }
         custom_amount => {
             currentMenu = "customAmount"
@@ -95,11 +98,33 @@ export component AppWindow inherits Window {
     card_input {
         amount: custom_amount;
         opacity: currentMenu == "card_input" ? 1 : 0;
-        cancel => {cancel_payment();}
+        cancel => {
+            cancel_payment();
+        }
     }
 
     accept {
         opacity: currentMenu == "accept" ? 1 : 0;
         amount: balance;
+    }
+
+    decline {
+        opacity: currentMenu == "decline" ? 1 : 0;
+        cancel => {
+            go_to_start()
+        };
+        retry => {
+            submit()
+        }
+    }
+
+    fail {
+        opacity: currentMenu == "fail" ? 1 : 0;
+        cancel => {
+            go_to_start()
+        };
+        retry => {
+            submit()
+        }
     }
 }

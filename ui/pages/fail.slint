@@ -1,8 +1,8 @@
 import { Button, VerticalBox } from "std-widgets.slint";
 import { Palette } from "../components/palette.slint";
 import { customButton } from "../components/customButton.slint";
-import { keypad_button } from "../components/keypad_button.slint";
-export component decline inherits Rectangle {
+
+export component fail inherits Rectangle {
     in property <string> amount: "";
     callback cancel();
     callback retry();
@@ -22,9 +22,20 @@ export component decline inherits Rectangle {
 
         Text {
             color: Palette.textColorMain;
-            text: "Payment Declined.";
+            text: "Oh no! Something went wrong on our end.";
             font-family: Palette.fontFamily;
             font-size: 64px;
+            font-weight: 700;
+            x: (parent.width / 2) - (self.width / 2);
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+
+        Text {
+            color: Palette.textColorAccent;
+            text: "No money has been taken from your account.";
+            font-family: Palette.fontFamily;
+            font-size: 48px;
             font-weight: 700;
             x: (parent.width / 2) - (self.width / 2);
             horizontal-alignment: center;
@@ -35,7 +46,9 @@ export component decline inherits Rectangle {
             custom_width: 400;
             custom_height: 100;
             text: "Retry";
-            callback => {retry()};
+            callback => {
+                retry()
+            };
             custom_font_size: 32;
             custom_font_weight: 400;
             x: (parent.width / 2) - (self.width / 2);
@@ -45,7 +58,9 @@ export component decline inherits Rectangle {
             custom_width: 400;
             custom_height: 100;
             text: "Cancel";
-            callback => {cancel()};
+            callback => {
+                cancel()
+            };
             custom_font_size: 32;
             custom_font_weight: 400;
             x: (parent.width / 2) - (self.width / 2);

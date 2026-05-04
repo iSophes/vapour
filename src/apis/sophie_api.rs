@@ -11,12 +11,18 @@ pub async fn does_user_exist(
 ) -> Result<bool, reqwest::Error> {
     // check if user exists.
 
+    println!("check exist");
+
     let tables_db = TablesDB::new(appwrite_client);
     let data = tables_db
         .get_row("users", "users", student_id, None, None)
         .await;
 
+    println!("data");
+
     if data.is_err() {
+        
+        println!("nuuuuuuu");
         let error_message = data.err().unwrap();
         let error_code = error_message.get_response();
 
@@ -28,6 +34,9 @@ pub async fn does_user_exist(
 
         return Ok(false);
     }
+
+    
+    println!("works!???");
 
     return Ok(true);
 }
