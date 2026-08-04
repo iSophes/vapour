@@ -82,6 +82,8 @@ async fn get_name_from_student_id(
         .json::<serde_json::Value>()
         .await?;
 
+    println!("okay");
+
     if name_callback["detail"] != serde_json::Value::Null {
         return Ok(Some("FAIL!!!!!! RETRY!!!".to_owned()));
     }
@@ -98,12 +100,19 @@ async fn get_name_from_student_id(
 pub async fn get_hello_text(student_id: &String) -> Result<String, Box<dyn std::error::Error>> {
     let jwt = get_my_runshaw_jwt().await?.unwrap();
 
+    println!("jwt!");
+
     if !does_account_exist(student_id).await? {
         return Ok("Hello!".to_owned());
     }
 
+    println!("exists!");
+
     let mut name = get_name_from_student_id(&jwt, student_id).await?.unwrap();
+
+    println!("name!");
     if name.starts_with("FAIL!") {
+        println!("fail!");
         // Retry and if it fails, fallback to hello. (Somethings probably going really bad that I don't want to deal with)
         name = get_name_from_student_id(&jwt, student_id).await?.unwrap();
         if name.starts_with("FAIL!") {
